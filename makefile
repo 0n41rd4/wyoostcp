@@ -19,23 +19,34 @@ objects = obj/loader.o \
           obj/hardwarecommunication/pci.o \
           obj/drivers/keyboard.o \
           obj/drivers/mouse.o \
-          obj/drivers/vga.o \
+		  obj/drivers/timer.o \
           obj/drivers/ata.o \
-          obj/gui/widget.o \
-          obj/gui/window.o \
-          obj/gui/desktop.o \
           obj/net/etherframe.o \
           obj/net/arp.o \
           obj/net/ipv4.o \
           obj/net/icmp.o \
           obj/net/udp.o \
-          obj/net/tcp.o \
-          obj/kernel.o
+          obj/net/tcp/tcp.o \
+		  obj/net/tcp/tcp_timer.o \
+		  obj/net/tcp/tcp_buffer.o
 
 
 run: mykernel.iso
-	(killall VirtualBox && sleep 1) || true
-	VirtualBox --startvm 'My Operating System' &
+	#(killall virtualboxvm && sleep 1) || true
+	virtualboxvm --startvm 'My Operating System' &
+	
+run2: mykernel2.iso
+	#(killall virtualboxvm && sleep 1) || true
+	virtualboxvm --startvm 'My Operating System 2' &
+
+runall: mykernel.iso mykernel2.iso
+	(killall virtualboxvm && sleep 1) || true
+	virtualboxvm --startvm 'My Operating System' &
+	sleep 3
+	virtualboxvm --startvm 'My Operating System 2' &
+
+kill:
+	(killall virtualboxvm && sleep 1) || true
 
 obj/%.o: src/%.cpp
 	mkdir -p $(@D)
@@ -45,13 +56,16 @@ obj/%.o: src/%.s
 	mkdir -p $(@D)
 	as $(ASPARAMS) -o $@ $<
 
-mykernel.bin: linker.ld $(objects)
-	ld $(LDPARAMS) -T $< -o $@ $(objects)
+mykernel.bin: linker.ld $(objects) obj/kernel.o
+	ld $(LDPARAMS) -T $< -o $@ $(objects) obj/kernel.o
+	
+mykernel2.bin: linker.ld $(objects) obj/kernel2.o
+	ld $(LDPARAMS) -T $< -o $@ $(objects) obj/kernel2.o
 
 mykernel.iso: mykernel.bin
-	mkdir iso
-	mkdir iso/boot
-	mkdir iso/boot/grub
+	mkdir -p iso
+	mkdir -p iso/boot
+	mkdir -p iso/boot/grub
 	cp mykernel.bin iso/boot/mykernel.bin
 	echo 'set timeout=0'                      > iso/boot/grub/grub.cfg
 	echo 'set default=0'                     >> iso/boot/grub/grub.cfg
@@ -60,12 +74,31 @@ mykernel.iso: mykernel.bin
 	echo '  multiboot /boot/mykernel.bin'    >> iso/boot/grub/grub.cfg
 	echo '  boot'                            >> iso/boot/grub/grub.cfg
 	echo '}'                                 >> iso/boot/grub/grub.cfg
-	grub-mkrescue --output=mykernel.iso iso
+	grub-mkrescue --xorriso=/home/bob/src/WOS/xorriso-1.4.6/xorriso/xorriso --output=mykernel.iso iso
 	rm -rf iso
+	
+mykernel2.iso: mykernel2.bin
+	mkdir -p iso2
+	mkdir -p iso2/boot
+	mkdir -p iso2/boot/grub
+	cp mykernel2.bin iso2/boot/mykernel2.bin
+	echo 'set timeout=0'                      > iso2/boot/grub/grub.cfg
+	echo 'set default=0'                     >> iso2/boot/grub/grub.cfg
+	echo ''                                  >> iso2/boot/grub/grub.cfg
+	echo 'menuentry "My Operating System 2" {' >> iso2/boot/grub/grub.cfg
+	echo '  multiboot /boot/mykernel2.bin'    >> iso2/boot/grub/grub.cfg
+	echo '  boot'                            >> iso2/boot/grub/grub.cfg
+	echo '}'                                 >> iso2/boot/grub/grub.cfg
+	grub-mkrescue --xorriso=/home/bob/src/WOS/xorriso-1.4.6/xorriso/xorriso --output=mykernel2.iso iso2
+	rm -rf iso2
 
 install: mykernel.bin
 	sudo cp $< /boot/mykernel.bin
+	
+install2: mykernel2.bin
+	sudo cp $< /boot/mykernel2.bin
 
 .PHONY: clean
 clean:
-	rm -rf obj mykernel.bin mykernel.iso
+	rm -rf obj mykernel.bin mykernel.iso mykernel2.bin mykernel2.iso
+

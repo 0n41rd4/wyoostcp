@@ -23,6 +23,7 @@
 
 
 
+
 using namespace myos;
 using namespace myos::common;
 using namespace myos::drivers;
@@ -330,7 +331,7 @@ extern "C" void kernelMain(const void* multiboot_structure, uint32_t /*multiboot
     amd_am79c973* eth0 = (amd_am79c973*)(drvManager.drivers[2]);
     
     // IP Address that VirtualBox accepts
-    uint8_t ip1 = 192, ip2 = 168, ip3 = 56, ip4 = 15;
+    uint8_t ip1 = 192, ip2 = 168, ip3 = 56, ip4 = 16;
     uint32_t ip_be = ((uint32_t)ip4 << 24)
                 | ((uint32_t)ip3 << 16)
                 | ((uint32_t)ip2 << 8)
@@ -340,27 +341,29 @@ extern "C" void kernelMain(const void* multiboot_structure, uint32_t /*multiboot
     EtherFrameProvider etherframe(eth0);
     AddressResolutionProtocol arp(&etherframe);
 
-    // IP Address of the VirtualBox 2
-    uint8_t vb2ip1 = 192, vb2ip2 = 168, vb2ip3 = 56, vb2ip4 = 16;
-    uint32_t vb2ip_be = ((uint32_t)vb2ip4 << 24)
-                   | ((uint32_t)vb2ip3 << 16)
-                   | ((uint32_t)vb2ip2 << 8)
-                   | (uint32_t)vb2ip1;    
-
-    // MAC Address of VirtualBox 2
-    uint64_t MAC = (uint64_t)0x9B << 40
-                 | (uint64_t)0x02 << 32
-                 | (uint64_t)0x7A << 24
-                 | (uint64_t)0x27 << 16
-                 | (uint64_t)0x00 << 8
-                 | (uint64_t)0x08;
-
+    
     // IP Address of the VirtualBox default gateway
-    uint8_t gip1 = 192, gip2 = 168, gip3 = 56, gip4 = 1;
+    uint8_t gip1 = 192, gip2 = 168, gip3 = 56, gip4 = 2;
     uint32_t gip_be = ((uint32_t)gip4 << 24)
                    | ((uint32_t)gip3 << 16)
                    | ((uint32_t)gip2 << 8)
                    | (uint32_t)gip1;
+
+    // IP Address of the VirtualBox 1
+    uint8_t vb1ip1 = 192, vb1ip2 = 168, vb1ip3 = 56, vb1ip4 = 15;
+    uint32_t vb1ip_be = ((uint32_t)vb1ip4 << 24)
+                   | ((uint32_t)vb1ip3 << 16)
+                   | ((uint32_t)vb1ip2 << 8)
+                   | (uint32_t)vb1ip1;
+
+    // MAC Address of VirtualBox 1
+    uint64_t MAC = (uint64_t)0x49 << 40
+                 | (uint64_t)0xD0 << 32
+                 | (uint64_t)0x8D << 24
+                 | (uint64_t)0x27 << 16
+                 | (uint64_t)0x00 << 8
+                 | (uint64_t)0x08;
+
     
     uint8_t subnet1 = 255, subnet2 = 255, subnet3 = 255, subnet4 = 0;
     uint32_t subnet_be = ((uint32_t)subnet4 << 24)
@@ -404,7 +407,7 @@ extern "C" void kernelMain(const void* multiboot_structure, uint32_t /*multiboot
         else
             snd_buffer[i] = 'b';
     }
-    TransmissionControlProtocolSocket* tcpsocket = tcp.Connect(vb2ip_be, 1237, snd_buffer);
+    TransmissionControlProtocolSocket* tcpsocket = tcp.Listen(1237);
 
     //Binds the socket and the handler.
     //tcp.Bind(tcpsocket, &tcphandler);
@@ -435,7 +438,7 @@ extern "C" void kernelMain(const void* multiboot_structure, uint32_t /*multiboot
     uint32_t count = 0;
     uint32_t count2 = 0;
     uint32_t count3 = 0;
-
+    clearscreen();
     while(1)
     {
         count = tcpsocket->Get(data, count2, 256);
@@ -443,12 +446,12 @@ extern "C" void kernelMain(const void* multiboot_structure, uint32_t /*multiboot
         {
            count3 +=count;
            count2 = (count2 + count) % 256;
-           clearscreen();
-           printf("\nBytes recieved: "); printfHex32(count3); printf(", Buffer size: "); printfHex32(count2); printf(", Buffer State:\n");
-           for(int i = 0; i < count2; i++)
+           //clearscreen();
+           //printf("\nBytes recieved now: "); printfHex32(count); printf(" total bytes recieved: "); printfHex32(count3); printf(", Buffer size: "); printfHex32(count2);// printf(", Buffer State:\n");
+           /*for(int i = 0; i < count2; i++)
            {
                 printfHex(data[i]);
-           }
+           }*/
            //printinfo = true;
            //ata0m.Write28(write_sector, tcpsocket->PointerToBuffer(), count);
            //ata0m.Flush();
@@ -461,5 +464,4 @@ extern "C" void kernelMain(const void* multiboot_structure, uint32_t /*multiboot
            //     write_sector++;
         }
     }
-
 }

@@ -34,7 +34,10 @@ void AdvancedTechnologyAttachment::Identify()
     devicePort.Write(0xA0);
     uint8_t status = commandPort.Read();
     if(status == 0xFF)
+    {
+        printf("No device\n");
         return;
+    }
     
     
     devicePort.Write(master ? 0xA0 : 0xB0);
@@ -47,7 +50,10 @@ void AdvancedTechnologyAttachment::Identify()
     
     status = commandPort.Read();
     if(status == 0x00)
+    {
+        printf("No device\n");
         return;
+    }
     
     while(((status & 0x80) == 0x80)
        && ((status & 0x01) != 0x01))
@@ -143,8 +149,8 @@ void AdvancedTechnologyAttachment::Write28(common::uint32_t sectorNum, common::u
         dataPort.Write(wdata);
         
         char *text = "  \0";
-        text[0] = (wdata >> 8) & 0xFF;
-        text[1] = wdata & 0xFF;
+        text[1] = (wdata >> 8) & 0xFF;
+        text[0] = wdata & 0xFF;
         printf(text);
     }
     

@@ -43,7 +43,9 @@ namespace myos
             
             bool OnEtherFrameReceived(common::uint8_t* etherframePayload, common::uint32_t size);
 
+            void AddMacAddress(common::uint32_t IP_BE, common::uint64_t MAC);
             void RequestMACAddress(common::uint32_t IP_BE);
+            bool PrintCache();
             common::uint64_t GetMACFromCache(common::uint32_t IP_BE);
             common::uint64_t Resolve(common::uint32_t IP_BE);
             void BroadcastMACAddress(common::uint32_t IP_BE);

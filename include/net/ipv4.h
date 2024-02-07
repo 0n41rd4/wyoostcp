@@ -4,6 +4,7 @@
 #include <common/types.h>
 #include <net/etherframe.h>
 #include <net/arp.h>
+#include <drivers/timer.h>
 
 namespace myos
 {

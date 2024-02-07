@@ -5,8 +5,6 @@ using namespace myos::common;
 using namespace myos::drivers;
 using namespace myos::hardwarecommunication;
 
- 
-
 
 RawDataHandler::RawDataHandler(amd_am79c973* backend)
 {
@@ -142,15 +140,14 @@ uint32_t amd_am79c973::HandleInterrupt(common::uint32_t esp)
 {
     registerAddressPort.Write(0);
     uint32_t temp = registerDataPort.Read();
-    
     if((temp & 0x8000) == 0x8000) printf("AMD am79c973 ERROR\n");
     if((temp & 0x2000) == 0x2000) printf("AMD am79c973 COLLISION ERROR\n");
     if((temp & 0x1000) == 0x1000) printf("AMD am79c973 MISSED FRAME\n");
     if((temp & 0x0800) == 0x0800) printf("AMD am79c973 MEMORY ERROR\n");
     if((temp & 0x0400) == 0x0400) Receive();
-    if((temp & 0x0200) == 0x0200) printf(" SENT");
+    if((temp & 0x0200) == 0x0200) //printf(" SENT");
                                
-    // acknoledge
+    // acknowledge
     registerAddressPort.Write(0);
     registerDataPort.Write(temp);
     
@@ -159,6 +156,31 @@ uint32_t amd_am79c973::HandleInterrupt(common::uint32_t esp)
     return esp;
 }
 
+void printIP(uint8_t* buffer, int size)
+{
+	printf("IP PACKET: ");
+    if(buffer[23] == 0x06) printf("TCP ");
+	for(int i = 14+20; i < (size>64?64:size); i++)
+    	{
+        printfHex(buffer[i]);
+        printf(" ");
+    	}
+}
+
+void printARP(uint8_t* buffer, int size)
+{
+	printf("ARP ");
+	buffer[21] == 0x01? printf("REQUEST: "):printf("REPLY: ");
+	for(int i = 14; i < (size>64?64:size); i++)
+    	{
+    	if(i == 16 || i == 18 || i == 20) printf("| ");
+    	if(i == 22) printf("\nSENDER: MAC ");
+    	if(i == 32) printf("\nTARGET: MAC ");
+    	if(i == 28 || i == 38) printf("| IP ");
+        printfHex(buffer[i]);
+        printf(" ");
+    	}
+}
        
 void amd_am79c973::Send(uint8_t* buffer, int size)
 {
@@ -173,11 +195,15 @@ void amd_am79c973::Send(uint8_t* buffer, int size)
                 src >= buffer; src--, dst--)
         *dst = *src;
         
-    printf("\nSEND: ");
-    for(int i = 14+20; i < (size>64?64:size); i++)
+    //printf("\n---SEND ");
+    //printfHex(buffer[12]); printf(" "); printfHex(buffer[13]);
+    // ARP 0x0806, IP 0x0800
+    if(buffer[13] == 0x00)
     {
-        printfHex(buffer[i]);
-        printf(" ");
+    	//printIP(buffer, size);
+    }
+    else{
+    	//printARP(buffer, size);
     }
     
     sendBufferDescr[sendDescriptor].avail = 0;
@@ -190,8 +216,7 @@ void amd_am79c973::Send(uint8_t* buffer, int size)
 
 void amd_am79c973::Receive()
 {
-    printf("\nRECV: ");
-    
+    //printf("\n---RECV ");
     for(; (recvBufferDescr[currentRecvBuffer].flags & 0x80000000) == 0;
         currentRecvBuffer = (currentRecvBuffer + 1) % 8)
     {
@@ -205,10 +230,12 @@ void amd_am79c973::Receive()
             
             uint8_t* buffer = (uint8_t*)(recvBufferDescr[currentRecvBuffer].address);
 
-            for(int i = 14+20; i < (size>64?64:size); i++)
+            if(buffer[13] == 0x00)
             {
-                printfHex(buffer[i]);
-                printf(" ");
+    	        //printIP(buffer, size);
+            }
+            else{
+    	        //printARP(buffer, size);
             }
 
             if(handler != 0)

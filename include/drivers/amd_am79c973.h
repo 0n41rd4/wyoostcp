@@ -14,7 +14,6 @@ namespace myos
 {
     namespace drivers
     {
-        
         class amd_am79c973;
         
         class RawDataHandler

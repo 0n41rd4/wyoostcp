@@ -5,7 +5,7 @@ using namespace myos::common;
 using namespace myos::net;
 using namespace myos::drivers;
 
-
+void printf(char*);
 
 EtherFrameHandler::EtherFrameHandler(EtherFrameProvider* backend, uint16_t etherType)
 {
@@ -58,12 +58,15 @@ bool EtherFrameProvider::OnRawDataReceived(common::uint8_t* buffer, common::uint
     EtherFrameHeader* frame = (EtherFrameHeader*)buffer;
     bool sendBack = false;
     
+
     if(frame->dstMAC_BE == 0xFFFFFFFFFFFF
     || frame->dstMAC_BE == backend->GetMACAddress())
     {
         if(handlers[frame->etherType_BE] != 0)
+        {
             sendBack = handlers[frame->etherType_BE]->OnEtherFrameReceived(
                 buffer + sizeof(EtherFrameHeader), size - sizeof(EtherFrameHeader));
+        }
     }
     
     if(sendBack)

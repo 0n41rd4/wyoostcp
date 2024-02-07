@@ -5,7 +5,11 @@ using namespace myos::common;
 using namespace myos::net;
 
         
-        
+void printf(char*);
+void printfHex(uint8_t);
+void printfHex16(uint16_t);
+void printfHex32(uint32_t);
+uint16_t bigEndian16(uint16_t);
             
 InternetProtocolHandler::InternetProtocolHandler(InternetProtocolProvider* backend, uint8_t protocol)
 {
@@ -57,17 +61,20 @@ bool InternetProtocolProvider::OnEtherFrameReceived(uint8_t* etherframePayload, 
     
     InternetProtocolV4Message* ipmessage = (InternetProtocolV4Message*)etherframePayload;
     bool sendBack = false;
-    
+    //printf("\ndst :"); printfHex32(ipmessage->dstIP); 
+    //printf("\nDST :");printfHex32(backend->GetIPAddress());
     if(ipmessage->dstIP == backend->GetIPAddress())
     {
-        int length = ipmessage->totalLength;
+        int length = bigEndian16(ipmessage->totalLength);
         if(length > size)
             length = size;
         
         if(handlers[ipmessage->protocol] != 0)
+        {
             sendBack = handlers[ipmessage->protocol]->OnInternetProtocolReceived(
                 ipmessage->srcIP, ipmessage->dstIP, 
                 etherframePayload + 4*ipmessage->headerLength, length - 4*ipmessage->headerLength);
+        }
         
     }
     
@@ -104,6 +111,7 @@ void InternetProtocolProvider::Send(uint32_t dstIP_BE, uint8_t protocol, uint8_t
     message->protocol = protocol;
     
     message->dstIP = dstIP_BE;
+    //printf("\nAA :"); printfHex32(message->dstIP); 
     message->srcIP = backend->GetIPAddress();
     
     message->checksum = 0;
@@ -114,10 +122,11 @@ void InternetProtocolProvider::Send(uint32_t dstIP_BE, uint8_t protocol, uint8_t
         databuffer[i] = data[i];
     
     uint32_t route = dstIP_BE;
+
     if((dstIP_BE & subnetMask) != (message->srcIP & subnetMask))
         route = gatewayIP;
     
-
+    
     backend->Send(arp->Resolve(route), this->etherType_BE, buffer, sizeof(InternetProtocolV4Message) + size);
     
     
