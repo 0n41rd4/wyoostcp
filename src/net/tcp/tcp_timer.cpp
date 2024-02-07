@@ -141,14 +141,15 @@ void TransmissionControlProtocolTimerHandler::Expired(uint32_t time)
 {
     if(socket->state == ESTABLISHED || socket->state == CLOSE_WAIT)
     {
+        /* //Testing RTO measurements. What usually happens in local networks is that at the beginning there is some sampling
+           //and the rto decreases a lot and stays in a low value.
+           
         if(time % 40 == 0 && counter < 20)
         {
-            //What usually happens in local networks is that at the beginning there is some sampling
-            //and the rto decreases a lot and stays in a low value
             //printf("\n"); printfHex32(rto); printf(" "); printfHex32(num_rtt_updates);
             //printf(" "); printfHex32(rtt_sample); printf(" "); printfHex32(backoff_factor);
             counter++;
-        }
+        }*/
 
         SendData(time);
     }

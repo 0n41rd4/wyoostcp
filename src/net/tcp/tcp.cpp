@@ -225,7 +225,6 @@ bool TransmissionControlProtocolProvider::OnInternetProtocolReceived(uint32_t sr
         
     bool reset = false;
 
-    //if(!(socket->state == LISTEN || socket->state == SYN_RECEIVED || socket->state == SYN_SENT || socket->state == CLOSED))
     socket->Update(0);
 
     //React to reset, but go back to LISTEN if the socket is passive.
@@ -526,8 +525,6 @@ bool TransmissionControlProtocolProvider::OnInternetProtocolReceived(uint32_t sr
 // ------------------------------------------------------------------------------------------
 
 
-
-//Need to make custom version
 void TransmissionControlProtocolProvider::Send(TransmissionControlProtocolSocket* socket, uint8_t* data, 
                                                uint16_t size, uint32_t data_seq_num,  uint16_t flags)
 {

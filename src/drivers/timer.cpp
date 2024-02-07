@@ -57,10 +57,6 @@ void TimerDriver::Activate()
 
 uint32_t TimerDriver::HandleInterrupt(uint32_t esp)
 {
-    
-    //if(handler == 0)
-    //    return esp;
-    
     ticks++;
 
     //Check all the timers;
@@ -68,29 +64,6 @@ uint32_t TimerDriver::HandleInterrupt(uint32_t esp)
     {
         timers[i]->Expired(ticks);
     }
-
-    /*if(seconds % 100 == 0 && *c)
-    {   
-            //printf("\nRead until ");
-            //printfHex32(*(a+2));
-            //printf(" starting at ");
-            //printfHex32(*(a+1));
-            //printf("\nNow reading ");
-            //printfHex32(*a);
-            //printf(" bytes to sector ");
-            //printfHex32(*b);
-            //for(int j = 0; j<= *b; j++)
-            //{
-            //    printf("\nSector "); printfHex(j);
-            //    printf(":\n");
-            //    for(int i = 0; i < *a ; i++)
-            //    {
-            //        printfHex(d[512*j + i]);
-            //    }
-            //}
-            //*c = false;
-            //seconds = 0;
-    }*/
     
     return esp;
 }

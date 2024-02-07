@@ -50,7 +50,7 @@ void TransmissionControlProtocolBuffer::AddToCircularBuffer(uint32_t start, uint
 }
 
 uint32_t TransmissionControlProtocolBuffer::GetFromCircularBuffer(uint8_t* dst, uint32_t offset, uint32_t buffersize)
-{   //Have to update rcv window not to send too much when rcv_next (= acknowlkedge_number) goes on
+{   //Have to update rcv window not to send too much when rcv_next (= acknowlkedge_number) goes on (DONE)
     uint32_t tmp = (rcv_nxt- isn) % 2048;
     uint32_t count = diff(tmp, curr_seg_start, 2048);
     if(count == 0)
@@ -84,15 +84,7 @@ bool TransmissionControlProtocolBuffer::Add(uint32_t start, uint32_t size, uint8
     
     for(DataChunk* temp = first; temp != 0; temp = temp->next)
     {
-        /*printf("\n temp start ");
-        printfHex32(temp->start);
-        printf(" temp ");
-        printfHex32(temp->size);
-        printf(" start ");
-        printfHex32(start);
-        printf(" size ");
-        printfHex32(size);
-        printf("\n");*/
+
         if(start + size < temp->start) //isolated chunk in buffer.
         {
             DataChunk* chunk = (DataChunk*)MemoryManager::activeMemoryManager->malloc(sizeof(DataChunk));

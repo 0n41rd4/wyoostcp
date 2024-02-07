@@ -43,7 +43,7 @@ namespace myos
             ~TimerDriver();
             virtual myos::common::uint32_t HandleInterrupt(myos::common::uint32_t esp);
             virtual void Activate();
-            //Add method to free a tomer from the list.
+            //Add method to free a timer from the list.
         };
 
     }

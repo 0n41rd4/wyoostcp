@@ -288,13 +288,8 @@ extern "C" void kernelMain(const void* multiboot_structure, uint32_t /*multiboot
     PeripheralComponentInterconnectController PCIController;
     PCIController.SelectDrivers(&drvManager, &interrupts);
 
-    //bool printinfo = false;
-    //uint32_t write_sector = 0;
+    //Start timers
     TimerDriver timer(&interrupts);
-    //timer.a = &count2;
-    //timer.b = &write_sector;
-    //timer.c = &printinfo;
-    //timer.d = data;
     drvManager.AddDriver(&timer);
 
     printf("Initializing Hardware, Stage 2\n");
@@ -306,7 +301,7 @@ extern "C" void kernelMain(const void* multiboot_structure, uint32_t /*multiboot
     printf("\nS-ATA primary master: ");
     AdvancedTechnologyAttachment ata0m(true, 0x1F0);
     ata0m.Identify();
-    //printf("\n\n");
+
     //ata0m.Read28(0, 25);
     //printf("\nS-ATA primary slave: ");
     //AdvancedTechnologyAttachment ata0s(false, 0x1F0);
@@ -315,17 +310,17 @@ extern "C" void kernelMain(const void* multiboot_structure, uint32_t /*multiboot
     //ata0s.Flush();
     //ata0s.Read28(0, 25);
     
-    /*
-    printf("\nS-ATA secondary master: ");
-    AdvancedTechnologyAttachment ata1m(true, 0x170);
-    ata1m.Identify();
     
-    printf("\nS-ATA secondary slave: ");
-    AdvancedTechnologyAttachment ata1s(false, 0x170);
-    ata1s.Identify();
+    //printf("\nS-ATA secondary master: ");
+    //AdvancedTechnologyAttachment ata1m(true, 0x170);
+    //ata1m.Identify();
+    
+    //printf("\nS-ATA secondary slave: ");
+    //AdvancedTechnologyAttachment ata1s(false, 0x170);
+    //ata1s.Identify();
     // third: 0x1E8
     // fourth: 0x168
-    */
+    
     
                    
     amd_am79c973* eth0 = (amd_am79c973*)(drvManager.drivers[2]);
@@ -381,13 +376,7 @@ extern "C" void kernelMain(const void* multiboot_structure, uint32_t /*multiboot
 
     clearscreen();
 
-    
-    //ata0m.Write28(0, (uint8_t*)"http://www.AlgorithMan.de", 25);
-    //ata0m.Flush();
-    //ata0m.Write28(1, (uint8_t*)"http://www.ALGORITHMAN.de", 25);
-    //ata0m.Flush();
-
-    //Add MAC of the other VM manually
+    //Adds MAC of the other VM manually:
     //arp.AddMacAddress(vb2ip_be, MAC);
     //arp.PrintCache();
 
@@ -412,9 +401,6 @@ extern "C" void kernelMain(const void* multiboot_structure, uint32_t /*multiboot
     //Binds the socket and the handler.
     //tcp.Bind(tcpsocket, &tcphandler);
 
-    //Sends when socket->state == ESTABLISHED, the tcp packet is assembled by the tcp provider using the socket info.
-    //tcpsocket->Send((uint8_t*)"Hello TCP!", 10);
-    
     //icmp.RequestEchoReply(gip_be);
     
     //PrintfUDPHandler udphandler;
@@ -425,43 +411,29 @@ extern "C" void kernelMain(const void* multiboot_structure, uint32_t /*multiboot
     //UserDatagramProtocolSocket* udpsocket = udp.Listen(1234);
     //udp.Bind(udpsocket, &udphandler);
 
-    //uint32_t write_sector = 0;
-    //uint32_t count = 0;
-    //printf("\nSector 0:");
-    //ata0m.Read28(0, 512);
-    //printf("\nSector 1:");
-    //ata0m.Read28(1, 512); 
-
     //Allocating "application" buffer
     void* allocated = memoryManager.malloc(2048);
     uint8_t* data = (uint8_t*) allocated;
-    uint32_t count = 0;
-    uint32_t count2 = 0;
-    uint32_t count3 = 0;
+    uint32_t count = 0;  // Bytes recieved in the last Get from tcp stack
+    uint32_t count2 = 0; // Total bytes recieved modulo a buffer size, below is set to 256
+    uint32_t count3 = 0; //Total bytes recieved
+
     clearscreen();
+
     while(1)
     {
+        //If there is data, read it
         count = tcpsocket->Get(data, count2, 256);
         if(tcpsocket != 0 && count > 0)
         {
            count3 +=count;
            count2 = (count2 + count) % 256;
            //clearscreen();
-           //printf("\nBytes recieved now: "); printfHex32(count); printf(" total bytes recieved: "); printfHex32(count3); printf(", Buffer size: "); printfHex32(count2);// printf(", Buffer State:\n");
+            printf("\nBytes recieved now: "); printfHex32(count); printf(" total bytes recieved: "); printfHex32(count3); printf(", Buffer size: "); printfHex32(count2);// printf(", Buffer State:\n");
            /*for(int i = 0; i < count2; i++)
            {
                 printfHex(data[i]);
            }*/
-           //printinfo = true;
-           //ata0m.Write28(write_sector, tcpsocket->PointerToBuffer(), count);
-           //ata0m.Flush();
-           //uint8_t* src = tcpsocket->PointerToBuffer();
-           //for(uint32_t i = 0; i < count; i++)
-           //{
-           //     data[512*write_sector + i] = src[i];
-           //}
-           //if(count == 512)
-           //     write_sector++;
         }
     }
 }
